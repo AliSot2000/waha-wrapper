@@ -469,7 +469,7 @@
                     },
                     "reaction": {
                         "description": "Emoji to react with. Send an empty string to remove the reaction",
-                        "example": "\ud83d\udc4d",
+                        "example": "👍",
                         "type": "string"
                     },
                     "session": {
@@ -1924,7 +1924,7 @@
                     },
                     "event": {
                         "default": "state.change",
-                        "description": "It\u2019s an internal engine\u2019s state, not session status.",
+                        "description": "It’s an internal engine’s state, not session status.",
                         "enum": [
                             "session.status",
                             "message",
@@ -5575,7 +5575,7 @@
                         "description": "Return a 200 status to indicate that the data was received successfully"
                     }
                 },
-                "summary": "It\u2019s an internal engine\u2019s state, not session status."
+                "summary": "It’s an internal engine’s state, not session status."
             }
         }
     }
