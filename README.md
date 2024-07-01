@@ -14,3 +14,4 @@ leading to validation errors.
 - [ ] Add tests
 - [ ] Create complete error handling
 - [ ] Add logging
+- [ ] Wait for error documentation + consistent errors from the api and then add a Pydantic Model for the errors to. [Issue](https://github.com/devlikeapro/waha/issues/403)
