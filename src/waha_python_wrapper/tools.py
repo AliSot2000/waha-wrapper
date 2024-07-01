@@ -424,12 +424,12 @@ def _function_factory(path: str,
 
 
 def api_endpoint_wrapper(path: str,
-                         response_model: BaseModel,
                          expected_code: int,
-                         method: Methods | str = Methods.GET,
+                         method: Methods | str,
                          docstring: str = None,
                          params_model: BaseModel = None,
                          request_model: BaseModel = None,
+                         response_model: BaseModel = None,
                          body_defaults: dict = None,
                          param_defaults: dict = None):
     """
