@@ -19,7 +19,7 @@ class Methods(str, Enum):
     PATCH = "PATCH"
 
 
-async def handle_response(response_model: BaseModel, resp: aiohttp.ClientResponse, expected_code: int = 200):
+async def handle_response(resp: aiohttp.ClientResponse, expected_code: int = 200, response_model: BaseModel = None):
     """
     Check the status code, generate error if one occurred, otherwise parse data and return it.
 
@@ -29,6 +29,9 @@ async def handle_response(response_model: BaseModel, resp: aiohttp.ClientRespons
     """
     if not resp.status != expected_code:
         raise handle_error(resp=resp, expected_code=expected_code)
+
+    if response_model is None:
+        return await resp.content.read()
 
     # Validate against response_model
     resp_data = response_model.model_validate(await resp.json())
