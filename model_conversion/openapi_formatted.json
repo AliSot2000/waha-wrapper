@@ -3417,7 +3417,13 @@
             "$ref": "#/components/schemas/MeInfo"
           },
           "engine": {
-            "type": "object"
+            "enum": [
+              "VENOM",
+              "WEBJS",
+              "NOWEB"
+            ],
+            "type": "string",
+            "example": "WEBJS"
           }
         },
         "required": [
