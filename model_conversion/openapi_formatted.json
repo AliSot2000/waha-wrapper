@@ -3351,7 +3351,7 @@
         "type": "object",
         "properties": {
           "logout": {
-            "type": "object",
+            "type": "boolean",
             "default": false,
             "example": false,
             "description": "Stop and logout from the session."
@@ -3707,7 +3707,7 @@
             }
           },
           "multipleAnswers": {
-            "type": "object",
+            "type": "boolean",
             "default": false
           }
         },
