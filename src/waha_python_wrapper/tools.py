@@ -51,174 +51,262 @@ def populate_path_params(path: str, lookup: Dict[str, str]):
     return path
 
 
-def plain_path_wrapper(path: str,
-                       params_model: BaseModel,
-                       response_model: BaseModel,
-                       expected_code: int,
-                       method: Methods | str = Methods.GET,
-                       docstring: str = None,
-                       request_model: BaseModel = None,
-                       body_defaults: dict = None,
-                       param_defaults: dict = None) -> Callable:
+async def _request_no_body_no_params(target_url: str,
+                                     response_model: BaseModel,
+                                     expected_code: int,
+                                     method: Methods,
+                                     session: aiohttp.ClientSession = None,
+                                     ):
     """
-    Wrapper for a plain path api endpoint that generates an async callable to make the request.
+    Send Request that does not require a body or parameters
 
-    Generated function may raise the following errors:
-    - BaseAPIException: If the request failed without a JSON response
-    - APIError: If the request failed with a JSON response
-    - ValidationError: If the response could not be validated with the response_model
+    :param target_url: url to send the request to, may contain path parameters
+    :param response_model: model to be used for the response
+    :param expected_code: expected http status code of response
+    :param method: http method to be used
+    :param session: aiohttp.ClientSession to be used for the request
 
-    Supported Methods are:
-    - GET
-    - POST
-    - PUT
-    - DELETE
-    - PATCH
-
-    :param path: API endpoint path
-    :param params_model: model to be used for the requests parameters
-    :param request_model: request model to be used
-    :param response_model: response model to be used
-    :param expected_code: expected status code from operation
-    :param method: HTTP Method to be used
-    :param docstring: docstring for the generated function
-    :param param_defaults: arguments passed to the param_model.model_validate method when the params are None.
-    :param body_defaults: default values for the body model
-
-    :return: function to call the api endpoint
+    :return: Instance of ResponseModel or raise an error
     """
-    if param_defaults is None:
-        param_defaults = {}
-
-    if body_defaults is None:
-        body_defaults = {}
-
-    if not isinstance(method, Methods):
-
-        # Try to parse the method, assuming string.
-        try:
-            parsed_method = Methods(str(method).upper())
-        except ValueError:
-            raise ValueError(f"Method {method} not supported, allowed are {list(Methods.__members__.keys())}")
-        except Exception as e:
-            raise e
-
-    # Method of correct type, can be used directly
+    # Make the Request
+    if session is None:
+        async with aiohttp.ClientSession() as session:
+            async with session.request(method=str(method), url=target_url) as resp:
+                return await handle_response(response_model=response_model,
+                                             resp=resp,
+                                             expected_code=expected_code)
     else:
-        parsed_method = method
+        async with session.request(method=str(method), url=target_url) as resp:
+            return await handle_response(response_model=response_model,
+                                         resp=resp,
+                                         expected_code=expected_code)
 
-    # Generate a GET function
-    if parsed_method == method.GET:
-        async def api_call(cfg: WAHAConfig,
-                           params: params_model = None,
-                           session: aiohttp.ClientSession = None) \
-                -> response_model:
-            f"""
-            DEFAULT DOCSTRING: Simple API endpoint call for {path}
-            """
-            # Create default params
-            if params is None:
-                params = params_model.model_validate(param_defaults)
 
-            target_url = f'{cfg.waha_url}{path}'
+async def _request_body_no_params(target_url: str,
+                                  response_model: BaseModel,
+                                  expected_code: int,
+                                  method: Methods,
+                                  body: BaseModel,
+                                  session: aiohttp.ClientSession = None):
+    """
+    Send Request that requires a body but no parameters
 
-            # Make the Request
-            if session is None:
-                async with aiohttp.ClientSession() as session:
+    :param target_url: url to send the request to, may contain path parameters
+    :param response_model: model to be used for the response
+    :param expected_code: expected http status code of response
+    :param method: http method to be used
+    :param body: json body model to be used for the request
+    :param session: aiohttp.ClientSession to be used for the request
 
-                    async with session.get(target_url,
-                                           params=params.model_dump(by_alias=True)) as resp:
-                        return handle_response(response_model=response_model,
-                                               resp=resp,
-                                               expected_code=expected_code)
-            else:
-                async with session.get(target_url,
-                                       params=params.model_dump(by_alias=True)) as resp:
+    :return: Instance of ResponseModel or raise an error
+    """
+    # Make the Request
+    if session is None:
+        async with aiohttp.ClientSession() as session:
+            async with session.request(url=target_url,
+                                       json=body.model_dump(by_alias=True),
+                                       method=str(method)) as resp:
+                return await handle_response(response_model=response_model,
+                                             resp=resp,
+                                             expected_code=expected_code)
+    else:
+        async with session.request(url=target_url,
+                                   json=body.model_dump(by_alias=True),
+                                   method=str(method)) as resp:
+            return await handle_response(response_model=response_model,
+                                         resp=resp,
+                                         expected_code=expected_code)
 
-                    return handle_response(response_model=response_model,
-                                           resp=resp,
-                                           expected_code=expected_code)
 
-    # Generate a POST function
-    elif parsed_method == method.POST:
-        async def api_call(cfg: WAHAConfig,
-                           params: params_model = None,
-                           body: request_model = None,
-                           session: aiohttp.ClientSession = None) \
-                -> response_model:
-            f"""
-            DEFAULT DOCSTRING: Simple API endpoint call for {path}
-            """
-            # Create default params
-            if params is None:
-                params = params_model.model_validate(param_defaults)
+async def _request_no_body_params(target_url: str,
+                                  response_model: BaseModel,
+                                  expected_code: int,
+                                  method: Methods,
+                                  params: BaseModel,
+                                  session: aiohttp.ClientSession = None):
+    """
+    Send Request that requires parameters but no body
 
-            # Create default body
-            if body is None:
-                body = request_model.model_validate(body_defaults)
+    :param target_url: url to send the request to, may contain path parameters
+    :param response_model: model to be used for the response
+    :param expected_code: expected http status code of response
+    :param method: http method to be used
+    :param params: json parameters model to be used for the request
+    :param session: aiohttp.ClientSession to be used for the request
 
-            target_url = f'{cfg.waha_url}{path}'
+    :return: Instance of ResponseModel or raise an error
+    """
+    # Make the Request
+    if session is None:
+        async with aiohttp.ClientSession() as session:
+            async with session.request(url=target_url,
+                                       params=params.model_dump(by_alias=True),
+                                       method=str(method)) as resp:
+                return await handle_response(response_model=response_model,
+                                             resp=resp,
+                                             expected_code=expected_code)
+    else:
+        async with session.request(url=target_url,
+                                   params=params.model_dump(by_alias=True),
+                                   method=str(method)) as resp:
+            return await handle_response(response_model=response_model,
+                                         resp=resp,
+                                         expected_code=expected_code)
 
-            # Make the Request
-            if session is None:
-                async with aiohttp.ClientSession() as session:
 
-                    async with session.post(target_url,
-                                            params=params.model_dump(by_alias=True),
-                                            json=body.model_dump(by_alias=True)) as resp:
-                        return handle_response(response_model=response_model,
-                                               resp=resp,
-                                               expected_code=expected_code)
-            else:
-                async with session.post(target_url,
-                                        params=params.model_dump(by_alias=True),
-                                        json=body.model_dump(by_alias=True)) as resp:
+async def _request_body_params(target_url: str,
+                               response_model: BaseModel,
+                               expected_code: int,
+                               method: Methods,
+                               body: BaseModel,
+                               params: BaseModel,
+                               session: aiohttp.ClientSession = None):
+    """
+    Send Request that requires parameters and a body
 
-                    return handle_response(response_model=response_model,
-                                           resp=resp,
-                                           expected_code=expected_code)
+    :param target_url: url to send the request to, may contain path parameters
+    :param response_model: model to be used for the response
+    :param expected_code: expected http status code of response
+    :param method: http method to be used
+    :param body: json body model to be used for the request
+    :param params: json parameters model to be used for the request
+    :param session: aiohttp.ClientSession to be used for the request
 
-    # Generate a PUT function
-    elif parsed_method == method.PUT:
-        async def api_call(cfg: WAHAConfig,
-                           params: params_model = None,
-                           body: request_model = None,
-                           session: aiohttp.ClientSession = None) \
-                -> response_model:
-            f"""
-            DEFAULT DOCSTRING: Simple API endpoint call for {path}
-            """
-            # Create default params
-            if params is None:
-                params = params_model.model_validate(param_defaults)
-
-            # Create default body
-            if body is None:
-                body = request_model.model_validate(body_defaults)
-
-            target_url = f'{cfg.waha_url}{path}'
-
-            # Make the Request
-            if session is None:
-                async with aiohttp.ClientSession() as session:
-
-                    async with session.put(target_url,
-                                           params=params.model_dump(by_alias=True),
-                                           json=body.model_dump(by_alias=True)) as resp:
-                        return handle_response(response_model=response_model,
-                                               resp=resp,
-                                               expected_code=expected_code)
-            else:
-                async with session.put(target_url,
+    :return: Instance of ResponseModel or raise an error
+    """
+    if session is None:
+        async with aiohttp.ClientSession() as session:
+            async with session.request(method=str(method),
+                                       url=target_url,
                                        params=params.model_dump(by_alias=True),
                                        json=body.model_dump(by_alias=True)) as resp:
+                return await handle_response(response_model=response_model,
+                                             resp=resp,
+                                             expected_code=expected_code)
+    else:
+        async with session.request(url=target_url,
+                                   method=str(method),
+                                   params=params.model_dump(by_alias=True),
+                                   json=body.model_dump(by_alias=True)) as resp:
+            return await handle_response(response_model=response_model,
+                                         resp=resp,
+                                         expected_code=expected_code)
 
-                    return handle_response(response_model=response_model,
-                                           resp=resp,
-                                           expected_code=expected_code)
 
-    # Generate a DELETE function
-    elif parsed_method == method.DELETE:
+def _function_factory(path: str,
+                      response_model: BaseModel,
+                      expected_code: int,
+                      param_defaults: dict,
+                      body_defaults: dict,
+                      method: Methods = Methods.POST,
+                      params_model: BaseModel = None,
+                      request_model: BaseModel = None,
+                      cleaned_args: List[str] = None,
+                      ):
+    """
+    Factory function to generate an async callable to make the request. Differentiates the 8 different
+    combinations of params_model, request_model and cleaned_args.
+
+    :param path: path of the API endpoint, may include path parameters
+    :param response_model: model to be used for the response
+    :param expected_code: expected http status code of response
+    :param param_defaults: param_defaults generated by the parent factory function
+    :param body_defaults: body_defaults generated by the parent factory function
+    :param method: http method to be used
+    :param params_model: param_model to be used for the request if any
+    :param request_model: request_model to be used for request if any
+    :param cleaned_args: path arguments to be used for the request if any are present
+    :return:
+    """
+
+    # 0, 0, 0
+    if params_model is None and request_model is None and cleaned_args is None:
+        async def api_call(cfg: WAHAConfig,
+                           session: aiohttp.ClientSession = None) \
+                -> response_model:
+            f"""
+            DEFAULT DOCSTRING: Simple API endpoint call for {path}
+            """
+            target_url = f'{cfg.waha_url}{path}'
+
+            return await _request_no_body_no_params(target_url=target_url,
+                                                    response_model=response_model,
+                                                    expected_code=expected_code,
+                                                    method=method,
+                                                    session=session)
+
+    # 0, 0, 1
+    if params_model is None and request_model is None and cleaned_args is not None:
+        async def api_call(cfg: WAHAConfig,
+                           session: aiohttp.ClientSession = None,
+                           **kwargs) \
+                -> response_model:
+            f"""
+            DEFAULT DOCSTRING: Simple API endpoint call for {path}
+            """
+            # Check Path Params
+            if set(kwargs.keys()) != set(cleaned_args):
+                raise ValueError(f"Expected path params {cleaned_args}, got {set(kwargs.keys())}")
+
+            target_url = f'{cfg.waha_url}{populate_path_params(path, kwargs)}'
+
+            return await _request_no_body_no_params(target_url=target_url,
+                                                    response_model=response_model,
+                                                    expected_code=expected_code,
+                                                    method=method,
+                                                    session=session)
+
+    # 0, 1, 0
+    if params_model is None and request_model is not None and cleaned_args is None:
+        async def api_call(cfg: WAHAConfig,
+                           body: request_model = None,
+                           session: aiohttp.ClientSession = None) \
+                -> response_model:
+            f"""
+            DEFAULT DOCSTRING: Simple API endpoint call for {path}
+            """
+            # Create default body
+            if body is None:
+                body = request_model.model_validate(body_defaults)
+
+            target_url = f'{cfg.waha_url}{path}'
+
+            return await _request_body_no_params(target_url=target_url,
+                                                 response_model=response_model,
+                                                 expected_code=expected_code,
+                                                 method=method,
+                                                 body=body,
+                                                 session=session)
+
+    # 0, 1, 1
+    if params_model is None and request_model is not None and cleaned_args is not None:
+        async def api_call(cfg: WAHAConfig,
+                           body: request_model = None,
+                           session: aiohttp.ClientSession = None,
+                           **kwargs) \
+                -> response_model:
+            f"""
+            DEFAULT DOCSTRING: Simple API endpoint call for {path}
+            """
+            # Check Path Params
+            if set(kwargs.keys()) != set(cleaned_args):
+                raise ValueError(f"Expected path params {cleaned_args}, got {set(kwargs.keys())}")
+
+            # Create default body
+            if body is None:
+                body = request_model.model_validate(body_defaults)
+
+            target_url = f'{cfg.waha_url}{populate_path_params(path, kwargs)}'
+
+            return await _request_body_no_params(target_url=target_url,
+                                                 response_model=response_model,
+                                                 expected_code=expected_code,
+                                                 method=method,
+                                                 body=body,
+                                                 session=session)
+
+    # 1, 0, 0
+    if params_model is not None and request_model is None and cleaned_args is None:
         async def api_call(cfg: WAHAConfig,
                            params: params_model = None,
                            session: aiohttp.ClientSession = None) \
@@ -232,25 +320,42 @@ def plain_path_wrapper(path: str,
 
             target_url = f'{cfg.waha_url}{path}'
 
-            # Make the Request
-            if session is None:
-                async with aiohttp.ClientSession() as session:
+            return await _request_no_body_params(target_url=target_url,
+                                                 response_model=response_model,
+                                                 expected_code=expected_code,
+                                                 method=method,
+                                                 params=params,
+                                                 session=session)
 
-                    async with session.delete(target_url,
-                                              params=params.model_dump(by_alias=True)) as resp:
-                        return handle_response(response_model=response_model,
-                                               resp=resp,
-                                               expected_code=expected_code)
-            else:
-                async with session.delete(target_url,
-                                          params=params.model_dump(by_alias=True)) as resp:
+    # 1, 0, 1
+    if params_model is not None and request_model is None and cleaned_args is not None:
+        async def api_call(cfg: WAHAConfig,
+                           params: params_model = None,
+                           session: aiohttp.ClientSession = None,
+                           **kwargs) \
+                -> response_model:
+            f"""
+            DEFAULT DOCSTRING: Simple API endpoint call for {path}
+            """
+            # Check Path Params
+            if set(kwargs.keys()) != set(cleaned_args):
+                raise ValueError(f"Expected path params {cleaned_args}, got {set(kwargs.keys())}")
 
-                    return handle_response(response_model=response_model,
-                                           resp=resp,
-                                           expected_code=expected_code)
+            # Create default params
+            if params is None:
+                params = params_model.model_validate(param_defaults)
 
-    # Generate a PATCH function
-    elif parsed_method == method.PATCH:
+            target_url = f'{cfg.waha_url}{populate_path_params(path, kwargs)}'
+
+            return await _request_no_body_params(target_url=target_url,
+                                                 response_model=response_model,
+                                                 expected_code=expected_code,
+                                                 method=method,
+                                                 params=params,
+                                                 session=session)
+
+    # 1, 1, 0
+    if params_model is not None and request_model is not None and cleaned_args is None:
         async def api_call(cfg: WAHAConfig,
                            params: params_model = None,
                            body: request_model = None,
@@ -269,42 +374,61 @@ def plain_path_wrapper(path: str,
 
             target_url = f'{cfg.waha_url}{path}'
 
-            # Make the Request
-            if session is None:
-                async with aiohttp.ClientSession() as session:
+            return await _request_body_params(target_url=target_url,
+                                              response_model=response_model,
+                                              expected_code=expected_code,
+                                              method=method,
+                                              body=body,
+                                              params=params,
+                                              session=session)
 
-                    async with session.patch(target_url,
-                                             params=params.model_dump(by_alias=True),
-                                             json=body.model_dump(by_alias=True)) as resp:
-                        return handle_response(response_model=response_model,
-                                               resp=resp,
-                                               expected_code=expected_code)
-            else:
-                async with session.patch(target_url,
-                                         params=params.model_dump(by_alias=True),
-                                         json=body.model_dump(by_alias=True)) as resp:
-
-                    return handle_response(response_model=response_model,
-                                           resp=resp,
-                                           expected_code=expected_code)
+    # 1, 1, 1
     else:
-        raise ValueError(f"Method {method} not supported, allowed are ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']")
+        assert params_model is not None and request_model is not None and cleaned_args is not None, "Invalid combination of params"
 
-    if docstring is not None:
-        api_call.__doc__ = docstring
+        async def api_call(cfg: WAHAConfig,
+                           params: params_model = None,
+                           body: request_model = None,
+                           session: aiohttp.ClientSession = None,
+                           **kwargs) \
+                -> response_model:
+            f"""
+            DEFAULT DOCSTRING: Simple API endpoint call for {path}
+            """
+            # Check Path Params
+            if set(kwargs.keys()) != set(cleaned_args):
+                raise ValueError(f"Expected path params {cleaned_args}, got {set(kwargs.keys())}")
+
+            # Create default params
+            if params is None:
+                params = params_model.model_validate(param_defaults)
+
+            # Create default body
+            if body is None:
+                body = request_model.model_validate(body_defaults)
+
+            target_url = f'{cfg.waha_url}{populate_path_params(path, kwargs)}'
+
+            return await _request_body_params(target_url=target_url,
+                                              response_model=response_model,
+                                              expected_code=expected_code,
+                                              method=method,
+                                              body=body,
+                                              params=params,
+                                              session=session)
 
     return api_call
 
 
-def path_param_wrapper(path: str,
-                       params_model: BaseModel,
-                       response_model: BaseModel,
-                       expected_code: int,
-                       method: Methods | str = Methods.GET,
-                       docstring: str = None,
-                       request_model: BaseModel = None,
-                       body_defaults: dict = None,
-                       param_defaults: dict = None):
+def api_endpoint_wrapper(path: str,
+                         params_model: BaseModel,
+                         response_model: BaseModel,
+                         expected_code: int,
+                         method: Methods | str = Methods.GET,
+                         docstring: str = None,
+                         request_model: BaseModel = None,
+                         body_defaults: dict = None,
+                         param_defaults: dict = None):
     """
     Wrapper for a plain path api endpoint that generates an async callable to make the request.
 
@@ -339,6 +463,9 @@ def path_param_wrapper(path: str,
     for param in path_params:
         cleaned_args.append(param.replace("/", "").replace("{", "").replace("}", ""))
 
+    if len(cleaned_args) == 0:
+        cleaned_args = None
+
     if param_defaults is None:
         param_defaults = {}
 
@@ -359,213 +486,17 @@ def path_param_wrapper(path: str,
     else:
         parsed_method = method
 
-    # Generate a GET function
-    if parsed_method == method.GET:
-        async def api_call(cfg: WAHAConfig,
-                           params: params_model = None,
-                           session: aiohttp.ClientSession = None,
-                           **kwargs) \
-                -> response_model:
-            f"""
-            DEFAULT DOCSTRING: Simple API endpoint call for {path}
-            """
-            # Check Path Params
-            if set(kwargs.keys()) != set(cleaned_args):
-                raise ValueError(f"Expected path params {cleaned_args}, got {set(kwargs.keys())}")
-
-            # Create default params
-            if params is None:
-                params = params_model.model_validate(param_defaults)
-
-            target_url = f'{cfg.waha_url}{populate_path_params(path, kwargs)}'
-
-            # Make the Request
-            if session is None:
-                async with aiohttp.ClientSession() as session:
-
-                    async with session.get(target_url,
-                                           params=params.model_dump(by_alias=True)) as resp:
-                        return handle_response(response_model=response_model,
-                                               resp=resp,
-                                               expected_code=expected_code)
-            else:
-                async with session.get(target_url,
-                                       params=params.model_dump(by_alias=True)) as resp:
-
-                    return handle_response(response_model=response_model,
-                                           resp=resp,
-                                           expected_code=expected_code)
-
-    # Generate a POST function
-    elif parsed_method == method.POST:
-        async def api_call(cfg: WAHAConfig,
-                           params: params_model = None,
-                           body: request_model = None,
-                           session: aiohttp.ClientSession = None,
-                           **kwargs) \
-                -> response_model:
-            f"""
-            DEFAULT DOCSTRING: Simple API endpoint call for {path}
-            """
-            # Check Path Params
-            if set(kwargs.keys()) != set(cleaned_args):
-                raise ValueError(f"Expected path params {cleaned_args}, got {set(kwargs.keys())}")
-
-            # Create default params
-            if params is None:
-                params = params_model.model_validate(param_defaults)
-
-            # Create default body
-            if body is None:
-                body = request_model.model_validate(body_defaults)
-
-            target_url = f'{cfg.waha_url}{populate_path_params(path, kwargs)}'
-
-            # Make the Request
-            if session is None:
-                async with aiohttp.ClientSession() as session:
-
-                    async with session.post(target_url,
-                                            params=params.model_dump(by_alias=True),
-                                            json=body.model_dump(by_alias=True)) as resp:
-                        return handle_response(response_model=response_model,
-                                               resp=resp,
-                                               expected_code=expected_code)
-            else:
-                async with session.post(target_url,
-                                        params=params.model_dump(by_alias=True),
-                                        json=body.model_dump(by_alias=True)) as resp:
-
-                    return handle_response(response_model=response_model,
-                                           resp=resp,
-                                           expected_code=expected_code)
-
-    # Generate a PUT function
-    elif parsed_method == method.PUT:
-        async def api_call(cfg: WAHAConfig,
-                           params: params_model = None,
-                           body: request_model = None,
-                           session: aiohttp.ClientSession = None,
-                           **kwargs) \
-                -> response_model:
-            f"""
-            DEFAULT DOCSTRING: Simple API endpoint call for {path}
-            """
-            # Check Path Params
-            if set(kwargs.keys()) != set(cleaned_args):
-                raise ValueError(f"Expected path params {cleaned_args}, got {set(kwargs.keys())}")
-
-            # Create default params
-            if params is None:
-                params = params_model.model_validate(param_defaults)
-
-            # Create default body
-            if body is None:
-                body = request_model.model_validate(body_defaults)
-
-            target_url = f'{cfg.waha_url}{populate_path_params(path, kwargs)}'
-
-            # Make the Request
-            if session is None:
-                async with aiohttp.ClientSession() as session:
-
-                    async with session.put(target_url,
-                                           params=params.model_dump(by_alias=True),
-                                           json=body.model_dump(by_alias=True)) as resp:
-                        return handle_response(response_model=response_model,
-                                               resp=resp,
-                                               expected_code=expected_code)
-            else:
-                async with session.put(target_url,
-                                       params=params.model_dump(by_alias=True),
-                                       json=body.model_dump(by_alias=True)) as resp:
-
-                    return handle_response(response_model=response_model,
-                                           resp=resp,
-                                           expected_code=expected_code)
-
-    # Generate a DELETE function
-    elif parsed_method == method.DELETE:
-        async def api_call(cfg: WAHAConfig,
-                           params: params_model = None,
-                           session: aiohttp.ClientSession = None,
-                           **kwargs) \
-                -> response_model:
-            f"""
-            DEFAULT DOCSTRING: Simple API endpoint call for {path}
-            """
-            # Check Path Params
-            if set(kwargs.keys()) != set(cleaned_args):
-                raise ValueError(f"Expected path params {cleaned_args}, got {set(kwargs.keys())}")
-
-            # Create default params
-            if params is None:
-                params = params_model.model_validate(param_defaults)
-
-            target_url = f'{cfg.waha_url}{populate_path_params(path, kwargs)}'
-
-            # Make the Request
-            if session is None:
-                async with aiohttp.ClientSession() as session:
-
-                    async with session.delete(target_url,
-                                              params=params.model_dump(by_alias=True)) as resp:
-                        return handle_response(response_model=response_model,
-                                               resp=resp,
-                                               expected_code=expected_code)
-            else:
-                async with session.delete(target_url,
-                                          params=params.model_dump(by_alias=True)) as resp:
-
-                    return handle_response(response_model=response_model,
-                                           resp=resp,
-                                           expected_code=expected_code)
-
-    # Generate a PATCH function
-    elif parsed_method == method.PATCH:
-        async def api_call(cfg: WAHAConfig,
-                           params: params_model = None,
-                           body: request_model = None,
-                           session: aiohttp.ClientSession = None,
-                           **kwargs) \
-                -> response_model:
-            f"""
-            DEFAULT DOCSTRING: Simple API endpoint call for {path}
-            """
-            # Check Path Params
-            if set(kwargs.keys()) != set(cleaned_args):
-                raise ValueError(f"Expected path params {cleaned_args}, got {set(kwargs.keys())}")
-
-            # Create default params
-            if params is None:
-                params = params_model.model_validate(param_defaults)
-
-            # Create default body
-            if body is None:
-                body = request_model.model_validate(body_defaults)
-
-            target_url = f'{cfg.waha_url}{populate_path_params(path, kwargs)}'
-
-            # Make the Request
-            if session is None:
-                async with aiohttp.ClientSession() as session:
-
-                    async with session.patch(target_url,
-                                             params=params.model_dump(by_alias=True),
-                                             json=body.model_dump(by_alias=True)) as resp:
-                        return handle_response(response_model=response_model,
-                                               resp=resp,
-                                               expected_code=expected_code)
-            else:
-                async with session.patch(target_url,
-                                         params=params.model_dump(by_alias=True),
-                                         json=body.model_dump(by_alias=True)) as resp:
-
-                    return handle_response(response_model=response_model,
-                                           resp=resp,
-                                           expected_code=expected_code)
-    else:
-        raise ValueError(f"Method {method} not supported, allowed are ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']")
+    api_call = _function_factory(
+        path=path,
+        response_model=response_model,
+        expected_code=expected_code,
+        param_defaults=param_defaults,
+        body_defaults=body_defaults,
+        method=parsed_method,
+        params_model=params_model,
+        request_model=request_model,
+        cleaned_args=cleaned_args,
+    )
 
     if docstring is not None:
         api_call.__doc__ = docstring
