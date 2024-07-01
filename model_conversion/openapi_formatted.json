@@ -3662,7 +3662,7 @@
             }
           },
           "_data": {
-            "type": "object",
+            "type": "string",
             "description": "Message in a raw format that we get from WhatsApp. May be changed anytime, use it with caution! It depends a lot on the underlying backend."
           },
           "media": {
@@ -3907,12 +3907,12 @@
         "type": "object",
         "properties": {
           "mimetype": {
-            "type": "object",
+            "type": "string",
             "default": "audio/ogg; codecs=opus",
             "description": "MIME type of the attachment."
           },
           "filename": {
-            "type": "object",
+            "type": "string",
             "default": "voice-message.mp3",
             "description": "Document file name. Optional"
           },
@@ -3932,7 +3932,7 @@
         "type": "object",
         "properties": {
           "mimetype": {
-            "type": "object",
+            "type": "string",
             "default": "audio/ogg; codecs=opus",
             "description": "MIME type of the attachment."
           },
@@ -3978,12 +3978,12 @@
         "type": "object",
         "properties": {
           "mimetype": {
-            "type": "object",
+            "type": "string",
             "default": "video/mp4",
             "description": "MIME type of the attachment."
           },
           "filename": {
-            "type": "object",
+            "type": "string",
             "default": "video.mp4",
             "description": "Document file name. Optional"
           },
@@ -4002,12 +4002,12 @@
         "type": "object",
         "properties": {
           "mimetype": {
-            "type": "object",
+            "type": "string",
             "default": "video/mp4",
             "description": "MIME type of the attachment."
           },
           "filename": {
-            "type": "object",
+            "type": "string",
             "default": "video.mp4",
             "description": "Document file name. Optional"
           },
@@ -4180,7 +4180,7 @@
         "type": "object",
         "properties": {
           "text": {
-            "type": "object",
+            "type": "string",
             "default": "Hello, world!"
           }
         },
@@ -4202,11 +4202,11 @@
             ]
           },
           "text": {
-            "type": "object",
+            "type": "string",
             "default": "Have a look! https://waha.devlike.pro/"
           },
           "backgroundColor": {
-            "type": "object",
+            "type": "string",
             "default": "#38b42f"
           },
           "font": {
@@ -4278,7 +4278,7 @@
             ]
           },
           "backgroundColor": {
-            "type": "object",
+            "type": "string",
             "default": "#38b42f"
           }
         },
@@ -4567,7 +4567,7 @@
               "poll.vote",
               "poll.vote.failed"
             ],
-            "type": "object",
+            "type": "string",
             "default": "session.status",
             "description": "The event is triggered when the session status changes."
           },
@@ -4620,7 +4620,7 @@
               "poll.vote",
               "poll.vote.failed"
             ],
-            "type": "object",
+            "type": "string",
             "default": "message",
             "description": "Incoming message."
           },
@@ -4741,7 +4741,7 @@
               "poll.vote",
               "poll.vote.failed"
             ],
-            "type": "object",
+            "type": "string",
             "default": "message.reaction",
             "description": "The event is triggered when a user reacts or removes a reaction."
           },
@@ -4794,7 +4794,7 @@
               "poll.vote",
               "poll.vote.failed"
             ],
-            "type": "object",
+            "type": "string",
             "default": "message.any",
             "description": "Fired on all message creations, including your own."
           },
@@ -4895,7 +4895,7 @@
               "poll.vote",
               "poll.vote.failed"
             ],
-            "type": "object",
+            "type": "string",
             "default": "message.ack",
             "description": "Receive events when server or recipient gets the message, read or played it."
           },
@@ -4959,7 +4959,7 @@
               "poll.vote",
               "poll.vote.failed"
             ],
-            "type": "object",
+            "type": "string",
             "default": "message.revoked",
             "description": "The event is triggered when a user, whether it be you or any other participant, revokes a previously sent message."
           },
@@ -5012,7 +5012,7 @@
               "poll.vote",
               "poll.vote.failed"
             ],
-            "type": "object",
+            "type": "string",
             "default": "state.change",
             "description": "It’s an internal engine’s state, not session status."
           },
@@ -5065,7 +5065,7 @@
               "poll.vote",
               "poll.vote.failed"
             ],
-            "type": "object",
+            "type": "string",
             "default": "group.join",
             "description": "Some one join a group."
           },
@@ -5118,7 +5118,7 @@
               "poll.vote",
               "poll.vote.failed"
             ],
-            "type": "object",
+            "type": "string",
             "default": "group.leave",
             "description": "Some one left a group."
           },
@@ -5171,7 +5171,7 @@
               "poll.vote",
               "poll.vote.failed"
             ],
-            "type": "object",
+            "type": "string",
             "default": "presence.update",
             "description": "The most recent presence information for a chat."
           },
@@ -5306,7 +5306,7 @@
               "poll.vote",
               "poll.vote.failed"
             ],
-            "type": "object",
+            "type": "string",
             "default": "poll.vote",
             "description": "With this event, you receive new votes for the poll sent."
           },
@@ -5359,7 +5359,7 @@
               "poll.vote",
               "poll.vote.failed"
             ],
-            "type": "object",
+            "type": "string",
             "default": "poll.vote.failed",
             "description": "There may be cases when it fails to decrypt a vote from the user. Read more about how to handle such events in the documentations."
           },
