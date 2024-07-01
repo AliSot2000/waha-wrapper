@@ -4192,7 +4192,10 @@
         "type": "object",
         "properties": {
           "contacts": {
-            "type": "object",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
             "default": [
               "55xxxxxxxxxxx@c.us"
             ],
@@ -4225,7 +4228,10 @@
         "type": "object",
         "properties": {
           "contacts": {
-            "type": "object",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
             "default": [
               "55xxxxxxxxxxx@c.us"
             ],
@@ -4258,7 +4264,10 @@
         "type": "object",
         "properties": {
           "contacts": {
-            "type": "object",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
             "default": [
               "55xxxxxxxxxxx@c.us"
             ],
@@ -4292,7 +4301,10 @@
         "type": "object",
         "properties": {
           "contacts": {
-            "type": "object",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
             "default": [
               "55xxxxxxxxxxx@c.us"
             ],
