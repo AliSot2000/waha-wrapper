@@ -4210,7 +4210,7 @@
             "default": "#38b42f"
           },
           "font": {
-            "type": "object",
+            "type": "number",
             "default": 1
           }
         },
