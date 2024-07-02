@@ -1,1 +1,1 @@
-from errors import BaseAPIException, APIError
+from waha_python_wrapper.errors import BaseAPIException, APIError
