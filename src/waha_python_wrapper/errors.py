@@ -76,12 +76,12 @@ async def handle_error(resp: ClientResponse, expected_code: int = 200):
         logging.exception("Unknown error while handling API error", exc_info=e)
 
     if content is None:
-        raise BaseAPIException(url=str(resp.url),
+        return BaseAPIException(url=str(resp.url),
                                code=resp.status,
                                expected_code=expected_code,
                                resp=resp)
     else:
-        raise APIError(url=str(resp.url),
+        return APIError(url=str(resp.url),
                        code=resp.status,
                        expected_code=expected_code,
                        resp=resp,
