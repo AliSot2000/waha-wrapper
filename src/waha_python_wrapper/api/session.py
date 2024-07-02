@@ -1,5 +1,8 @@
 from waha_python_wrapper.tools import api_endpoint_wrapper, Methods
 import waha_python_wrapper.waha_model as wm
+from typing import List
+from waha_python_wrapper.config import cfg
+import asyncio
 
 start_session = api_endpoint_wrapper(path="/api/sessions/start",
                                      request_model=wm.SessionStartRequest,
@@ -35,7 +38,7 @@ stop_session = api_endpoint_wrapper(path="/api/sessions/stop",
 
 
 list_session = api_endpoint_wrapper(path="/api/sessions/",
-                                    response_model=wm.SessionListDTO,
+                                    response_model=List[wm.SessionInfo],
                                     expected_code=200,
                                     method=Methods.GET,
                                     docstring="""
