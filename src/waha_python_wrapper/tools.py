@@ -1,10 +1,20 @@
-from pydantic import BaseModel
-from typing import Callable, List, Dict
+from typing import Callable, List, Dict, Any
 from waha_python_wrapper.errors import handle_error
 import aiohttp
 from waha_python_wrapper.config import WAHAConfig
 from enum import Enum
 import re
+from abc import ABC, abstractmethod
+
+
+class Model(ABC):
+    @abstractmethod
+    def model_dump(self, by_alias: bool = False):
+        pass
+
+    @abstractmethod
+    def model_validate(self, data: dict):
+        pass
 
 
 class Methods(str, Enum):
@@ -19,7 +29,7 @@ class Methods(str, Enum):
     PATCH = "PATCH"
 
 
-async def handle_response(resp: aiohttp.ClientResponse, expected_code: int = 200, response_model: BaseModel = None):
+async def handle_response(resp: aiohttp.ClientResponse, expected_code: int = 200, response_model: Any = None):
     """
     Check the status code, generate error if one occurred, otherwise parse data and return it.
 
@@ -55,7 +65,7 @@ def populate_path_params(path: str, lookup: Dict[str, str]):
 
 
 async def _request_no_body_no_params(target_url: str,
-                                     response_model: BaseModel,
+                                     response_model: Model,
                                      expected_code: int,
                                      method: Methods,
                                      session: aiohttp.ClientSession = None,
@@ -86,10 +96,10 @@ async def _request_no_body_no_params(target_url: str,
 
 
 async def _request_body_no_params(target_url: str,
-                                  response_model: BaseModel,
+                                  response_model: Model,
                                   expected_code: int,
                                   method: Methods,
-                                  body: BaseModel,
+                                  body: Model,
                                   session: aiohttp.ClientSession = None):
     """
     Send Request that requires a body but no parameters
@@ -122,10 +132,10 @@ async def _request_body_no_params(target_url: str,
 
 
 async def _request_no_body_params(target_url: str,
-                                  response_model: BaseModel,
+                                  response_model: Model,
                                   expected_code: int,
                                   method: Methods,
-                                  params: BaseModel,
+                                  params: Model,
                                   session: aiohttp.ClientSession = None):
     """
     Send Request that requires parameters but no body
@@ -158,11 +168,11 @@ async def _request_no_body_params(target_url: str,
 
 
 async def _request_body_params(target_url: str,
-                               response_model: BaseModel,
+                               response_model: Model,
                                expected_code: int,
                                method: Methods,
-                               body: BaseModel,
-                               params: BaseModel,
+                               body: Model,
+                               params: Model,
                                session: aiohttp.ClientSession = None):
     """
     Send Request that requires parameters and a body
@@ -197,15 +207,15 @@ async def _request_body_params(target_url: str,
 
 
 def _function_factory(path: str,
-                      response_model: BaseModel,
+                      response_model: Model,
                       expected_code: int,
                       param_defaults: dict,
                       body_defaults: dict,
                       method: Methods = Methods.POST,
-                      params_model: BaseModel = None,
-                      request_model: BaseModel = None,
+                      params_model: Model = None,
+                      request_model: Model = None,
                       cleaned_args: List[str] = None,
-                      ):
+                      ) -> Callable:
     """
     Factory function to generate an async callable to make the request. Differentiates the 8 different
     combinations of params_model, request_model and cleaned_args.
@@ -239,7 +249,7 @@ def _function_factory(path: str,
                                                     session=session)
 
     # 0, 0, 1
-    if params_model is None and request_model is None and cleaned_args is not None:
+    elif params_model is None and request_model is None and cleaned_args is not None:
         async def api_call(cfg: WAHAConfig,
                            session: aiohttp.ClientSession = None,
                            **kwargs) \
@@ -260,7 +270,7 @@ def _function_factory(path: str,
                                                     session=session)
 
     # 0, 1, 0
-    if params_model is None and request_model is not None and cleaned_args is None:
+    elif params_model is None and request_model is not None and cleaned_args is None:
         async def api_call(cfg: WAHAConfig,
                            body: request_model = None,
                            session: aiohttp.ClientSession = None) \
@@ -282,7 +292,7 @@ def _function_factory(path: str,
                                                  session=session)
 
     # 0, 1, 1
-    if params_model is None and request_model is not None and cleaned_args is not None:
+    elif params_model is None and request_model is not None and cleaned_args is not None:
         async def api_call(cfg: WAHAConfig,
                            body: request_model = None,
                            session: aiohttp.ClientSession = None,
@@ -309,7 +319,7 @@ def _function_factory(path: str,
                                                  session=session)
 
     # 1, 0, 0
-    if params_model is not None and request_model is None and cleaned_args is None:
+    elif params_model is not None and request_model is None and cleaned_args is None:
         async def api_call(cfg: WAHAConfig,
                            params: params_model = None,
                            session: aiohttp.ClientSession = None) \
@@ -331,7 +341,7 @@ def _function_factory(path: str,
                                                  session=session)
 
     # 1, 0, 1
-    if params_model is not None and request_model is None and cleaned_args is not None:
+    elif params_model is not None and request_model is None and cleaned_args is not None:
         async def api_call(cfg: WAHAConfig,
                            params: params_model = None,
                            session: aiohttp.ClientSession = None,
@@ -358,7 +368,7 @@ def _function_factory(path: str,
                                                  session=session)
 
     # 1, 1, 0
-    if params_model is not None and request_model is not None and cleaned_args is None:
+    elif params_model is not None and request_model is not None and cleaned_args is None:
         async def api_call(cfg: WAHAConfig,
                            params: params_model = None,
                            body: request_model = None,
@@ -427,9 +437,9 @@ def api_endpoint_wrapper(path: str,
                          expected_code: int,
                          method: Methods | str,
                          docstring: str = None,
-                         params_model: BaseModel = None,
-                         request_model: BaseModel = None,
-                         response_model: BaseModel = None,
+                         params_model: Model = None,
+                         request_model: Model = None,
+                         response_model: Model = None,
                          body_defaults: dict = None,
                          param_defaults: dict = None):
     """
