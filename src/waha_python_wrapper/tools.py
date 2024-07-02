@@ -38,7 +38,7 @@ async def handle_response(resp: aiohttp.ClientResponse, expected_code: int = 200
     :raise ValidationError: If the response could not be validated with the response_model
     """
     if not resp.status != expected_code:
-        raise handle_error(resp=resp, expected_code=expected_code)
+        raise await handle_error(resp=resp, expected_code=expected_code)
 
     if response_model is None:
         return await resp.content.read()
