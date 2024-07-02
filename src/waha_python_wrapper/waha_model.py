@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 
 class Base64File(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     mimetype: str
     data: str
@@ -20,14 +20,14 @@ class Base64File(BaseModel):
 
 class QRCodeValue(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     value: str
 
 
 class RequestCodeRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     phoneNumber: str = Field(
         ...,
@@ -42,21 +42,21 @@ class RequestCodeRequest(BaseModel):
 
 class OTPRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     code: str
 
 
 class CaptchaBody(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     code: str
 
 
 class ProxyConfig(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     server: str = Field(..., example='localhost:3128')
     username: str | None = None
@@ -65,7 +65,7 @@ class ProxyConfig(BaseModel):
 
 class NowebStoreConfig(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     enabled: bool = Field(
         ...,
@@ -79,21 +79,21 @@ class NowebStoreConfig(BaseModel):
 
 class NowebConfig(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     store: NowebStoreConfig | None = None
 
 
 class HmacConfiguration(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     key: str = Field(..., example='your-secret-key')
 
 
 class RetriesConfiguration(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     delaySeconds: float = Field(..., example=2)
     attempts: float = Field(..., example=15)
@@ -101,7 +101,7 @@ class RetriesConfiguration(BaseModel):
 
 class CustomHeader(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     name: str = Field(..., example='X-My-Custom-Header')
     value: str = Field(..., example='Value')
@@ -109,7 +109,7 @@ class CustomHeader(BaseModel):
 
 class WebhookConfig(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     url: str = Field(..., example='https://httpbin.org/post')
     events: List[str] = Field(..., example=['message', 'session.status'])
@@ -120,7 +120,7 @@ class WebhookConfig(BaseModel):
 
 class SessionConfig(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     proxy: ProxyConfig | None = None
     noweb: NowebConfig | None = Field(
@@ -132,7 +132,7 @@ class SessionConfig(BaseModel):
 
 class SessionStartRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     name: str
     config: SessionConfig | None = None
@@ -148,7 +148,7 @@ class Status(Enum):
 
 class SessionDTO(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     name: str
     status: Status
@@ -157,7 +157,7 @@ class SessionDTO(BaseModel):
 
 class SessionStopRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     logout: bool | None = Field(
         False, description='Stop and logout from the session.', example=False
@@ -167,14 +167,14 @@ class SessionStopRequest(BaseModel):
 
 class SessionLogoutRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     name: str
 
 
 class MeInfo(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     id: str = Field(..., example='11111111111@c.us')
     pushName: str
@@ -188,7 +188,7 @@ class Engine(Enum):
 
 class SessionInfo(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     name: str
     status: Status
@@ -199,7 +199,7 @@ class SessionInfo(BaseModel):
 
 class WANumberExistResult(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     chatId: str | None = Field(
         None,
@@ -210,7 +210,7 @@ class WANumberExistResult(BaseModel):
 
 class Contact(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     fullName: str = Field(
         ..., description='The full name of the contact', example='John Doe'
@@ -231,7 +231,7 @@ class Contact(BaseModel):
 
 class VCardContact(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     vcard: str = Field(
         ...,
@@ -242,7 +242,7 @@ class VCardContact(BaseModel):
 
 class MessageContactVcardRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     chatId: str = Field(..., example='11111111111@c.us')
     contacts: List[VCardContact | Contact]
@@ -251,7 +251,7 @@ class MessageContactVcardRequest(BaseModel):
 
 class MessageTextRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     chatId: str = Field(..., example='11111111111@c.us')
     text: str
@@ -260,7 +260,7 @@ class MessageTextRequest(BaseModel):
 
 class WALocation(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     description: str | None = None
     latitude: str
@@ -269,7 +269,7 @@ class WALocation(BaseModel):
 
 class WAMedia(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     url: str = Field(
         ...,
@@ -299,7 +299,7 @@ class Ack(Enum):
 
 class WAMessage(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     id: str = Field(
         ...,
@@ -360,7 +360,7 @@ class WAMessage(BaseModel):
 
 class MessagePoll(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     name: str = Field(..., example='How are you?')
     options: List[str] = Field(..., example=['Awesome!', 'Good!', 'Not bad!'])
@@ -369,7 +369,7 @@ class MessagePoll(BaseModel):
 
 class MessagePollRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     chatId: str = Field(..., example='11111111111@c.us')
     poll: MessagePoll
@@ -378,7 +378,7 @@ class MessagePollRequest(BaseModel):
 
 class MessageLocationRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     chatId: str = Field(..., example='11111111111@c.us')
     latitude: float
@@ -389,7 +389,7 @@ class MessageLocationRequest(BaseModel):
 
 class MessageLinkPreviewRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     chatId: str = Field(..., example='11111111111@c.us')
     url: str
@@ -399,7 +399,7 @@ class MessageLinkPreviewRequest(BaseModel):
 
 class BinaryFile(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     mimetype: str = Field(
         ..., description='MIME type of the attachment.', example='image/jpeg'
@@ -416,7 +416,7 @@ class BinaryFile(BaseModel):
 
 class RemoteFile(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     mimetype: str = Field(
         ..., description='MIME type of the attachment.', example='image/jpeg'
@@ -434,7 +434,7 @@ class RemoteFile(BaseModel):
 
 class MessageImageRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     chatId: str = Field(..., example='11111111111@c.us')
     file: RemoteFile | BinaryFile
@@ -444,7 +444,7 @@ class MessageImageRequest(BaseModel):
 
 class MessageFileRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     chatId: str = Field(..., example='11111111111@c.us')
     file: RemoteFile | BinaryFile
@@ -454,7 +454,7 @@ class MessageFileRequest(BaseModel):
 
 class VoiceBinaryFile(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     mimetype: str = Field(..., description='MIME type of the attachment.')
     filename: str = Field(..., description='Document file name. Optional')
@@ -467,7 +467,7 @@ class VoiceBinaryFile(BaseModel):
 
 class VoiceRemoteFile(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     mimetype: str = Field(..., description='MIME type of the attachment.')
     url: str = Field(
@@ -478,7 +478,7 @@ class VoiceRemoteFile(BaseModel):
 
 class MessageVoiceRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     chatId: str = Field(..., example='11111111111@c.us')
     file: VoiceRemoteFile | VoiceBinaryFile
@@ -487,7 +487,7 @@ class MessageVoiceRequest(BaseModel):
 
 class VideoRemoteFile(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     mimetype: str = Field(..., description='MIME type of the attachment.')
     filename: str = Field(..., description='Document file name. Optional')
@@ -498,7 +498,7 @@ class VideoRemoteFile(BaseModel):
 
 class VideoBinaryFile(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     mimetype: str = Field(..., description='MIME type of the attachment.')
     filename: str = Field(..., description='Document file name. Optional')
@@ -511,7 +511,7 @@ class VideoBinaryFile(BaseModel):
 
 class MessageVideoRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     chatId: str = Field(..., example='11111111111@c.us')
     file: VideoRemoteFile | VideoBinaryFile
@@ -521,7 +521,7 @@ class MessageVideoRequest(BaseModel):
 
 class MessageReplyRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     chatId: str = Field(..., example='11111111111@c.us')
     reply_to: str = Field(..., example='false_11111111111@c.us_AAAAAAAAAAAAAAAAAAAA')
@@ -531,7 +531,7 @@ class MessageReplyRequest(BaseModel):
 
 class SendSeenRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     chatId: str = Field(..., example='11111111111@c.us')
     messageId: str | None = Field(
@@ -549,7 +549,7 @@ class SendSeenRequest(BaseModel):
 
 class ChatRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     chatId: str = Field(..., example='11111111111@c.us')
     session: str
@@ -557,7 +557,7 @@ class ChatRequest(BaseModel):
 
 class MessageReactionRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     messageId: str = Field(..., example='false_11111111111@c.us_AAAAAAAAAAAAAAAAAAAA')
     reaction: str = Field(
@@ -570,7 +570,7 @@ class MessageReactionRequest(BaseModel):
 
 class MessageStarRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     messageId: str = Field(..., example='false_11111111111@c.us_AAAAAAAAAAAAAAAAAAAA')
     chatId: str = Field(..., example='11111111111@c.us')
@@ -580,14 +580,14 @@ class MessageStarRequest(BaseModel):
 
 class EditMessageRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     text: str
 
 
 class TextStatus(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     contacts: List[str] = Field(
         ...,
@@ -601,7 +601,7 @@ class TextStatus(BaseModel):
 
 class ImageStatus(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     contacts: List[str] = Field(
         ...,
@@ -614,7 +614,7 @@ class ImageStatus(BaseModel):
 
 class VoiceStatus(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     contacts: List[str] = Field(
         ...,
@@ -627,7 +627,7 @@ class VoiceStatus(BaseModel):
 
 class VideoStatus(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     contacts: List[str] = Field(
         ...,
@@ -640,7 +640,7 @@ class VideoStatus(BaseModel):
 
 class ContactRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     contactId: str
     session: str
@@ -648,14 +648,14 @@ class ContactRequest(BaseModel):
 
 class Participant(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     id: str
 
 
 class CreateGroupRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     name: str
     participants: List[Participant]
@@ -663,28 +663,28 @@ class CreateGroupRequest(BaseModel):
 
 class SettingsSecurityChangeInfo(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     adminsOnly: bool
 
 
 class DescriptionRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     description: str
 
 
 class SubjectRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     subject: str
 
 
 class ParticipantsRequest(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     participants: List[Participant]
 
@@ -699,7 +699,7 @@ class Presence(Enum):
 
 class WAHASessionPresence(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     chatId: str = Field(
         ...,
@@ -719,7 +719,7 @@ class LastKnownPresence(Enum):
 
 class WAHAPresenceData(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     participant: str = Field(
         ...,
@@ -732,7 +732,7 @@ class WAHAPresenceData(BaseModel):
 
 class WAHAChatPresences(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     id: str = Field(
         ...,
@@ -744,7 +744,7 @@ class WAHAChatPresences(BaseModel):
 
 class WAHAEnvironment(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     version: str = Field(..., example='2029.10.29')
     engine: str = Field(..., example='WEBJS')
@@ -754,7 +754,7 @@ class WAHAEnvironment(BaseModel):
 
 class WASessionStatusBody(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     name: str = Field(..., example='default')
     status: Status
@@ -777,7 +777,7 @@ class Event(Enum):
 
 class WAHAWebhookSessionStatus(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     session: str = Field(..., example='default')
     engine: Engine = Field(..., example='WEBJS')
@@ -791,7 +791,7 @@ class WAHAWebhookSessionStatus(BaseModel):
 
 class WAHAWebhookMessage(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     session: str = Field(..., example='default')
     engine: Engine = Field(..., example='WEBJS')
@@ -803,7 +803,7 @@ class WAHAWebhookMessage(BaseModel):
 
 class WAReaction(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     text: str = Field(
         ...,
@@ -818,7 +818,7 @@ class WAReaction(BaseModel):
 
 class WAMessageReaction(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     id: str = Field(
         ...,
@@ -855,7 +855,7 @@ class WAMessageReaction(BaseModel):
 
 class WAHAWebhookMessageReaction(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     session: str = Field(..., example='default')
     engine: Engine = Field(..., example='WEBJS')
@@ -870,7 +870,7 @@ class WAHAWebhookMessageReaction(BaseModel):
 
 class WAHAWebhookMessageAny(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     session: str = Field(..., example='default')
     engine: Engine = Field(..., example='WEBJS')
@@ -884,7 +884,7 @@ class WAHAWebhookMessageAny(BaseModel):
 
 class WAMessageAckBody(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     id: str = Field(
         ...,
@@ -901,7 +901,7 @@ class WAMessageAckBody(BaseModel):
 
 class WAHAWebhookMessageAck(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     session: str = Field(..., example='default')
     engine: Engine = Field(..., example='WEBJS')
@@ -916,7 +916,7 @@ class WAHAWebhookMessageAck(BaseModel):
 
 class WAMessageRevokedBody(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     after: WAMessage | None = None
     before: WAMessage | None = None
@@ -924,7 +924,7 @@ class WAMessageRevokedBody(BaseModel):
 
 class WAHAWebhookMessageRevoked(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     session: str = Field(..., example='default')
     engine: Engine = Field(..., example='WEBJS')
@@ -939,7 +939,7 @@ class WAHAWebhookMessageRevoked(BaseModel):
 
 class WAHAWebhookStateChange(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     session: str = Field(..., example='default')
     engine: Engine = Field(..., example='WEBJS')
@@ -953,7 +953,7 @@ class WAHAWebhookStateChange(BaseModel):
 
 class WAHAWebhookGroupJoin(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     session: str = Field(..., example='default')
     engine: Engine = Field(..., example='WEBJS')
@@ -965,7 +965,7 @@ class WAHAWebhookGroupJoin(BaseModel):
 
 class WAHAWebhookGroupLeave(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     session: str = Field(..., example='default')
     engine: Engine = Field(..., example='WEBJS')
@@ -977,7 +977,7 @@ class WAHAWebhookGroupLeave(BaseModel):
 
 class WAHAWebhookPresenceUpdate(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     session: str = Field(..., example='default')
     engine: Engine = Field(..., example='WEBJS')
@@ -991,7 +991,7 @@ class WAHAWebhookPresenceUpdate(BaseModel):
 
 class PollVote(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     id: str = Field(
         ...,
@@ -1009,7 +1009,7 @@ class PollVote(BaseModel):
 
 class MessageDestination(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     id: str = Field(
         ...,
@@ -1023,7 +1023,7 @@ class MessageDestination(BaseModel):
 
 class PollVotePayload(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     vote: PollVote
     poll: MessageDestination
@@ -1031,7 +1031,7 @@ class PollVotePayload(BaseModel):
 
 class WAHAWebhookPollVote(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     session: str = Field(..., example='default')
     engine: Engine = Field(..., example='WEBJS')
@@ -1045,7 +1045,7 @@ class WAHAWebhookPollVote(BaseModel):
 
 class WAHAWebhookPollVoteFailed(BaseModel):
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
     session: str = Field(..., example='default')
     engine: Engine = Field(..., example='WEBJS')
